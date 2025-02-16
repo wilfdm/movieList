@@ -3,7 +3,7 @@ import Search from "./components/search"
 import Spinner from "./components/Spinner";
 import MovieCard from "./components/MovieCard";
 import { useDebounce } from "react-use";
-import { updateSearchCount } from "./appwrite"
+import { getTrendingMovies, updateSearchCount } from "./appwrite"
 
 const API_BASE_URL = 'https://api.themoviedb.org/3';
 const API_KEY = import.meta.env.VITE_TMBD_API_KEY;
@@ -21,6 +21,7 @@ const App = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [movieList, setMovieList] = useState([]);
+  const [trendingMovies, setTrendingMovies] = useState([]);
   const [isLoading, setisLoading] = useState(false);
   const [debounceSearchTerm, setDebounceSearchTerm] = useState('')
 
@@ -63,10 +64,25 @@ const App = () => {
     }
   }
 
+  const loadTrendingMovies = async () => {
+    try {
+      const movies = await getTrendingMovies();
+
+      setTrendingMovies(movies);
+    } catch (error) {
+      console.error(`Error fetching trending movies: ${error}`);
+      
+    }
+  }
 
   useEffect(() => {
     fetchMovies(debounceSearchTerm);
   }, [debounceSearchTerm]);
+
+  useEffect(() => {
+    loadTrendingMovies();
+  }, []);
+  
 
 
 
@@ -82,8 +98,27 @@ const App = () => {
           <Search searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
         </header>
 
+        {trendingMovies.length > 0 && (
+          <section className="trending">
+            <h2>
+              Trending Movies
+            </h2>
+              <ul>
+                {trendingMovies.map((movie, index) => (
+                  <li key={movie.$id}>
+                    <p>
+                      {index+1}
+                    </p>
+                    <img src={movie.poster_url} alt={movie.title}/>
+                 </li>
+              ))}
+              </ul>
+            
+          </section>
+        )}
+
         <section className="all-movies">
-          <h2 className="mt-[40px]">
+          <h2>
             All movies
           </h2>
 
